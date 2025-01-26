@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MathMania</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" rel="stylesheet">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Floating Equations -->
+  <div id="floating-equations"></div>
+
+  <!-- Main Start Screen -->
+  <div id="main-start-screen" class="container">
+    <h1 class="display-2">MathMania</h1>
+    <br>
+    <h3>"𝙔𝙤𝙪𝙧 𝙥𝙖𝙩𝙝 𝙩𝙤 𝙣𝙪𝙢𝙚𝙧𝙞𝙘𝙖𝙡 𝙚𝙭𝙘𝙚𝙡𝙡𝙚𝙣𝙘𝙚"</h3>
+    
+    <!-- Player Name Input -->
+    <div class="mt-4">
+      <input type="text" id="player-name" class="form-control w-50 mx-auto" placeholder="Enter your name" required>
+    </div>
+    <br>
+    <button type="button" class="btn btn-primary btn-lg" onclick="savePlayerName()">Play</button>
+  </div>
+
+  <!-- Difficulty Selector Screen -->
+  <div id="start-screen" class="container hidden">
+    <h3>Select Difficulty:</h3>
+    <button type="button" class="btn btn-primary btn-lg" onclick="startGame('easy')">Easy</button>
+    <button type="button" class="btn btn-primary btn-lg" onclick="startGame('medium')">Medium</button>
+    <button type="button" class="btn btn-primary btn-lg" onclick="startGame('hard')">Hard</button>
+  </div>
+ 
+  <!-- Game Screen -->
+  <div id="game-screen" class="container text-center py-5 hidden">
+    <div class="timer" id="timer">05:00</div>
+    <div id="score" class="display-5">Score: 0</div>
+    <hr>
+    <h2><p id="question" class="display-6">Loading...</p></h2>
+    <input type="text" id="answer" class="form-control w-50 mx-auto my-4" placeholder="Enter your answer">
+    <div class="d-flex justify-content-center gap-3">
+      <button id="next-button" class="btn btn-primary btn-lg" onclick="generateQuestion()">Next</button>
+      <button class="btn btn-primary btn-lg" onclick="quitGame()">Quit</button>
+    </div>
+    <div id="result" class="fs-4 mt-3"></div>
+  </div>
+
+  <!-- Bootstrap JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Custom JS -->
+  <script src="script.js"></script>
+
+  <script>
+    // Define the function savePlayerName
+    function savePlayerName() {
+      const playerName = document.getElementById('player-name').value;
+      const data = {
+        playerName: playerName
+      };
+
+      fetch('http://op.code-wizard.in:9060/savePlayerName', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log(data);
+        goToDifficultyScreen();
+      })
+      .catch(error => console.error('Error:', error));
+    }
+
+    function quitGame() {
+      const playerName = document.getElementById('player-name').value;
+      const score = getScore(); // Replace with your function to get the current score
+      const totalScore = getTotalScore(); // Replace with your function to get the total score
+      const answers = getAnswers(); // Replace with your function to get the player's answers
+
+      const data = {
+        playerName: playerName,
+        score: score,
+        totalScore: totalScore,
+        answers: answers
+      };
+
+      fetch('http://op.code-wizard.in:9060/quitGame', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
+      .then(response => {
+        if (!response.ok) {
+          // If the response is not OK, try to handle it as plain text
+          return response.text().then(text => {
+            throw new Error(text || 'Network response was not ok');
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log(data);
+        alert('Score and answers saved successfully!');
+        
+        // Reset the game screen and go back to the start screen
+        resetGame();
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert(`Failed to save score and answers: ${error.message}`);
+      });
+    }
+
+    // Function to reset the game and go back to the start screen
+    function resetGame() {
+      // Hide the game screen
+      document.getElementById("game-screen").classList.add("hidden");
+
+      // Show the main start screen again
+      document.getElementById("main-start-screen").classList.remove("hidden");
+
+      // Optionally, clear the inputs or reset any state variables
+      document.getElementById('player-name').value = '';
+      document.getElementById('score').textContent = 'Score: 0';
+      document.getElementById('timer').textContent = '05:00';
+      document.getElementById('question').textContent = 'Loading...';
+      document.getElementById('answer').value = '';
+      document.getElementById('result').textContent = '';
+    }
+
+    // Define the function goToDifficultyScreen
+    function goToDifficultyScreen() {
+      // Hide the main start screen
+      document.getElementById("main-start-screen").classList.add("hidden");
+
+      // Show the difficulty selector screen
+      document.getElementById("start-screen").classList.remove("hidden");
+    }
+
+    // Define the function getScore
+    function getScore() {
+      // Your logic to calculate and return the score
+      return score;
+    }
+
+    // Define the function getTotalScore
+    function getTotalScore() {
+      // Your logic to calculate and return the total score
+      return totalScore;
+    }
+
+    // Define the function getAnswers
+    function getAnswers() {
+      // Your logic to collect and return the player's answers
+      return answers;
+    }
+  </script>
+</body>
+</html>
